@@ -13,16 +13,17 @@ const getContact = asyncHandler(async (req, res) => {
 // @route POST api/contacts
 // @access public
 const createContact = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, phone, password } = req.body;
 
-  if (!name || !email || !password) {
-    res.status(400).send({ message: "please fill out all fields" });
+  if (!name || !email || !phone || !password) {
+    res.status(400);
     throw new Error("All fields are mandatory");
   }
 
   const contact = await Contact.create({
     name,
     email,
+    phone,
     password,
   });
 
@@ -34,7 +35,7 @@ const createContact = asyncHandler(async (req, res) => {
 // @access public
 const getSingleContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
-  console.log(contact);
+
   if (!contact) {
     res.status(404);
     throw new Error("Contact not found in database");
@@ -47,13 +48,32 @@ const getSingleContact = asyncHandler(async (req, res) => {
 // @route PUT api/contacts/:id
 // @access public
 const updateSingleContact = asyncHandler(async (req, res) => {
-  res.status(200).json({ message: `contact ${req.params.id} updated` });
+  const contact = await Contact.findById(req.params.id);
+
+  if (!contact) {
+    res.status(404);
+    throw new Error("Contact not found in database");
+  }
+
+  const updatedContact = await Contact.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+  res.status(200).json(updatedContact);
 });
 
 // @desc Delete single contact
 // @route DELETE api/contacts/:id
 // @access public
 const deleteSingleContact = asyncHandler(async (req, res) => {
+  const contact = await Contact.findById(req.params.id);
+
+  if (!contact) {
+    res.status(404);
+    throw new Error("Contact not found in database");
+  }
+
+  // await Contact.remove();
+  await Contact.findByIdAndDelete(contact);
+
   res.status(200).json({ message: `contact ${req.params.id} deleted` });
 });
 

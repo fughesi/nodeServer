@@ -1,9 +1,11 @@
 const { constants } = require("../constants.js");
 
 const errorHandler = (err, req, res, next) => {
-  const statusCode = res.statusCode ? res.statusCode : 500;
+  const stat = res?.statusCode ? res?.statusCode : 500;
 
-  switch (statusCode) {
+  // console.log(statusCode);
+
+  switch (stat) {
     case constants.VALIDATION_ERROR:
       res.json({
         title: "Validation failed",
@@ -28,7 +30,7 @@ const errorHandler = (err, req, res, next) => {
       break;
   }
 
-  next();
+  // next();
 };
 
 module.exports = errorHandler;
