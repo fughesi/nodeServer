@@ -30,7 +30,7 @@ const errorHandler = (err, req, res, next) => {
       break;
   }
 
-  // next();
+  next();
 };
 
 module.exports = errorHandler;

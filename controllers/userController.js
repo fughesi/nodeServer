@@ -1,6 +1,15 @@
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const User = require("../models/userModel.js");
+
+// @desc Get all users
+// @route GET api/users
+// @access public
+const allUsers = asyncHandler(async (req, res) => {
+  const users = await User.find();
+  res.status(200).json({ users });
+});
 
 // @desc Get current user
 // @route GET api/users/current
@@ -51,7 +60,32 @@ const registerUser = asyncHandler(async (req, res) => {
 // @route POST api/users/login
 // @access public
 const loginUser = asyncHandler(async (req, res) => {
-  res.json({ message: "login user" });
+  const { email, password } = req.body;
+  if (!email || !password) {
+    res.status(400);
+    throw new Error("all fields are mandatory");
+  }
+
+  const loggedInUser = await User.findOne({ email });
+
+  if (loggedInUser && (await bcrypt.compare(password, loggedInUser.password))) {
+    const accessToken = jwt.sign(
+      {
+        user: {
+          username: loggedInUser.username,
+          email: loggedInUser.email,
+          id: loggedInUser.id,
+        },
+      },
+      process.env.JWT,
+      { expiresIn: "1m" }
+    );
+
+    res.status(200).json({ accessToken });
+  } else {
+    res.status(401);
+    throw new Error("Incorrect email or password.  Please enter proper credentials");
+  }
 });
 
-module.exports = { registerUser, loginUser, currentUser };
+module.exports = { registerUser, loginUser, currentUser, allUsers };
