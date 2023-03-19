@@ -1,11 +1,11 @@
 const express = require("express");
 const dotenv = require("dotenv").config();
 const connectDB = require("./config/dbConnection.js");
-const errorHandler = require("./middleware/errorHandler.js");
+const { errorHandler } = require("./middleware/errorHandler.js");
 
 const app = express();
 connectDB();
-
+console.log(errorHandler);
 app.use(express.json());
 app.use(errorHandler);
 

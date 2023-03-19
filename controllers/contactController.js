@@ -52,6 +52,11 @@ const updateSingleContact = asyncHandler(async (req, res) => {
     throw new Error("Contact not found in database");
   }
 
+  if (contact.user_id.toString() !== req.user.id) {
+    res.status(403);
+    throw new Error("user is unauthorized!!");
+  }
+
   const updatedContact = await Contact.findByIdAndUpdate(req.params.id, req.body, { new: true });
 
   res.status(200).json(updatedContact);
@@ -68,7 +73,11 @@ const deleteSingleContact = asyncHandler(async (req, res) => {
     throw new Error("Contact not found in database");
   }
 
-  // await Contact.remove();
+  if (contact.user_id.toString() !== req.user.id) {
+    res.status(403);
+    throw new Error("user is unauthorized");
+  }
+
   await Contact.findByIdAndDelete(contact);
 
   res.status(200).json({ message: `contact ${req.params.id} deleted` });
