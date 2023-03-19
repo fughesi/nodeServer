@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { userValidation } = require("../middleware/reqValidationHandler.js");
 const User = require("../models/userModel.js");
 
 // @desc Get all users
@@ -15,19 +16,14 @@ const allUsers = asyncHandler(async (req, res) => {
 // @route GET api/users/current
 // @access private
 const currentUser = asyncHandler(async (req, res) => {
-  res.json({ message: "current user information" });
+  res.json(req.user);
 });
 
 // @desc Register a user
 // @route POST api/users/register
 // @access public
 const registerUser = asyncHandler(async (req, res) => {
-  const { username, email, password } = req.body;
-
-  if (!username || !email || !password) {
-    res.status(400);
-    throw new Error("All fields must be filled out");
-  }
+  const { username, email, password } = await userValidation.validateAsync(req.body);
 
   const userAvailable = await User.findOne({ email });
 
@@ -37,8 +33,6 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-
-  console.log("hashed password: ", hashedPassword);
 
   const user = await User.create({
     username,
@@ -60,11 +54,7 @@ const registerUser = asyncHandler(async (req, res) => {
 // @route POST api/users/login
 // @access public
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    res.status(400);
-    throw new Error("all fields are mandatory");
-  }
+  const { email, password } = await userValidation.validateAsync(req.body);
 
   const loggedInUser = await User.findOne({ email });
 
@@ -78,7 +68,7 @@ const loginUser = asyncHandler(async (req, res) => {
         },
       },
       process.env.JWT,
-      { expiresIn: "1m" }
+      { expiresIn: "15m" }
     );
 
     res.status(200).json({ accessToken });

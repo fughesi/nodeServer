@@ -1,30 +1,27 @@
 const asyncHandler = require("express-async-handler");
 const Contact = require("../models/contactModel.js");
+const { contactValidation } = require("../middleware/reqValidationHandler.js");
 
 // @desc Get all contacts
 // @route GET api/contacts
-// @access public
+// @access private
 const getContact = asyncHandler(async (req, res) => {
-  const contacts = await Contact.find();
+  const contacts = await Contact.find({ user_id: req.user.id });
   res.status(200).json(contacts);
 });
 
 // @desc Create contacts
 // @route POST api/contacts
-// @access public
+// @access private
 const createContact = asyncHandler(async (req, res) => {
-  const { name, email, phone, password } = req.body;
-
-  if (!name || !email || !phone || !password) {
-    res.status(400);
-    throw new Error("All fields are mandatory");
-  }
+  const { name, email, phone, password } = await contactValidation.validateAsync(req.body);
 
   const contact = await Contact.create({
     name,
     email,
     phone,
     password,
+    user_id: req.user.id,
   });
 
   res.status(201).json(contact);
@@ -32,7 +29,7 @@ const createContact = asyncHandler(async (req, res) => {
 
 // @desc Get single contact
 // @route GET api/contacts/:id
-// @access public
+// @access private
 const getSingleContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
 
@@ -46,7 +43,7 @@ const getSingleContact = asyncHandler(async (req, res) => {
 
 // @desc Update single contact
 // @route PUT api/contacts/:id
-// @access public
+// @access private
 const updateSingleContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
 
@@ -62,7 +59,7 @@ const updateSingleContact = asyncHandler(async (req, res) => {
 
 // @desc Delete single contact
 // @route DELETE api/contacts/:id
-// @access public
+// @access private
 const deleteSingleContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
 
